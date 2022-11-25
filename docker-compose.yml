@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  db:
+    container_name: contest_mode_db
+    image: postgres:13.0-alpine
+    volumes:
+      - contest_mode_db_vol:/var/lib/postgresql/data
+      - ./import:/mnt/import
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - ${DB_PORT_EXTERNAL}:${DB_PORT}
+
+  web:
+    container_name: contest_mode_django
+    build: .
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_TYPE=postgres
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - ${GUNICORN_PORT}:8000
+    depends_on:
+      - db
+
+volumes:
+  contest_mode_db_vol:
+    external: true

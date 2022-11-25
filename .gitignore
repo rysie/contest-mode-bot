@@ -1,0 +1,6 @@
+/.idea
+.env
+.env.prod
+venv
+/logs/*
+/staticfiles/*
