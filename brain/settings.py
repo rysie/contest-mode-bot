@@ -40,6 +40,7 @@ MAX_POSTS = 30
 # Application definition
 
 INSTALLED_APPS = [
+    'bot.apps.BotConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,15 +59,28 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': env('LOGFILE'),
+            'formatter': 'timestamp',
         },
         'stream': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'timestamp',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'timestamp',
+        },
+    },
+    'formatters': {
+        'timestamp': {
+            'format': '{asctime} {levelname} {message}',
+            'style': '{',
         },
     },
     'loggers': {
-        'refresh': {
-            'handlers': ['file', 'stream'],
+        'contest-bot': {
+            'handlers': ['stream', 'file'],
             'level': 'DEBUG',
             'propagate': True,
         },

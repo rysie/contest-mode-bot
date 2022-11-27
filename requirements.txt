@@ -1,5 +1,6 @@
-Django>=4.0,<5.0
+Django>=4.1,<5.0
 gunicorn==20.1.0
 psycopg2-binary>=2.9.1
-praw>=7.4
+praw>=7.6
 django-environ>=0.7
+pyyaml>=6.0
