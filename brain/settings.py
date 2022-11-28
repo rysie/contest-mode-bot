@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://*.127.0.0.1']
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['https://*.127.0.0.1'])
 
 LOGGING = {
     'version': 1,
