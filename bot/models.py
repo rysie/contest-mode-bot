@@ -14,7 +14,7 @@ class Submission(models.Model):
     original_flair_template_id = models.CharField(max_length=64, null=True, blank=True)
     submission_id = models.CharField(max_length=64, null=False, blank=False)
     subreddit = models.ForeignKey('Subreddit', on_delete=models.CASCADE, null=False)
-    title = models.CharField(max_length=256, null=False, blank=False)
+    title = models.CharField(max_length=1024, null=False, blank=False)
     upvotes = models.IntegerField(null=False, default=0)
 
     def __str__(self):
