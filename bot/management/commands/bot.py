@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from typing import List
+import prawcore
 
 from threading import Event, Thread
 from bot.management.commands._wiki_config import fetch_config as fetch_wiki_config
@@ -13,6 +14,9 @@ from prawcore.exceptions import PrawcoreException
 import logging
 
 logger = logging.getLogger('contest-bot')
+
+INTERVAL_STREAM_WATCH = 10
+INTERVAL_RUN_CONTEST = 60
 
 
 #
@@ -35,7 +39,7 @@ class WatchSubredditsStream(Thread):
             self.streams[subreddit.display_name] = subreddit.stream.submissions(pause_after=0)
 
     def run(self):
-        while not self.stopped.wait(10):
+        while not self.stopped.wait(INTERVAL_STREAM_WATCH):
             for key in self.streams:
                 stream = self.streams[key]
 
@@ -70,19 +74,23 @@ class RunContest(Thread):
         self.subreddits_list = subreddits_list
 
     def run(self):
-        while not self.stopped.wait(60):
+        while not self.stopped.wait(INTERVAL_RUN_CONTEST):
             wiki_config = fetch_wiki_config(self.subreddits_list)
             run_contest(self.reddit_instance, self.subreddits_list, wiki_config)
 
 
 class Command(BaseCommand):
     help = 'Run Contest Mode Bot'
-    reddit_instance = authenticate_reddit_client()
-    my_subreddits = list(
-        filter(
-            lambda sub: not sub.display_name.startswith('u_'), reddit_instance.user.moderator_subreddits()
+    try:
+        reddit_instance = authenticate_reddit_client()
+        my_subreddits = list(
+            filter(
+                lambda sub: not sub.display_name.startswith('u_'), reddit_instance.user.moderator_subreddits()
+            )
         )
-    )
+
+    except prawcore.exceptions.PrawcoreException as exception:
+        logger.error(f'PrawcoreException during bot startup: {exception}')
 
     def handle(self, *args, **options):
         logger.info('-' * 10 + f' starting bot')

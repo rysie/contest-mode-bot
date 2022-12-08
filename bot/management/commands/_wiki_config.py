@@ -44,4 +44,7 @@ def fetch_config(subreddits_list: List[praw.reddit.Subreddit]) -> dict:
             config_dictionary[subreddit.display_name] = default_config
             logger.error(f'Config not found for subreddit %s' % subreddit.display_name)
 
+        except prawcore.exceptions.PrawcoreException as exception:
+            logger.error(f'PrawcoreException {exception}')
+
     return config_dictionary

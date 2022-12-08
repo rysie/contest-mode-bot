@@ -3,6 +3,7 @@ from django.utils.timezone import make_aware
 from datetime import datetime
 
 import praw
+import prawcore
 import logging
 
 from prawcore.exceptions import NotFound, Forbidden
@@ -153,6 +154,8 @@ def reset_subreddit_state(
     except NotFound:
         logger.info(f'Sticky post #1: not found')
         sticky[1] = None
+    except prawcore.exceptions.PrawcoreException as exception:
+        logger.error(f'PrawcoreException when fetching sticky posts (1): {exception}')
 
     try:
         sticky[2] = reddit_instance.subreddit(subreddit_name).sticky(2)
@@ -160,6 +163,8 @@ def reset_subreddit_state(
     except NotFound:
         logger.info(f'Sticky post #2: not found')
         sticky[2] = None
+    except prawcore.exceptions.PrawcoreException as exception:
+        logger.error(f'PrawcoreException when fetching sticky posts (2): {exception}')
 
     try:
         if isinstance(sticky[1], praw.reddit.Submission) and sticky[1].link_flair_template_id == flair:
@@ -195,6 +200,10 @@ def reset_subreddit_state(
         logger.error(f'Can\'t remove sticky, check moderator privileges!')
         return None
 
+    except prawcore.exceptions.PrawcoreException as exception:
+        logger.error(f'PrawcoreException during sticky removal: {exception}')
+        return None
+
     logger.info(f'Cool, we already have a free slot for sticky!')
 
     return None
@@ -221,6 +230,9 @@ def promote_submission(
         best_submission.save()
     except Forbidden:
         logger.error(f'Can\'t add sticky or flair submission, check moderator privileges!')
+        return None
+    except prawcore.exceptions.PrawcoreException as exception:
+        logger.error(f'PrawcoreException during setting sticky: {exception}')
         return None
 
     logger.info(f'Added sticky and flaired.')

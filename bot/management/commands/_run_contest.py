@@ -2,9 +2,12 @@ from django.db.models import QuerySet
 from datetime import datetime, timedelta
 from django.utils.timezone import make_aware
 from typing import List
+
 import praw
+import prawcore
 import logging
 import re
+
 from bot.models import Subreddit, Submission
 from bot.management.commands._handle_submission \
     import is_removed_or_deleted, reset_subreddit_state, promote_submission
@@ -60,15 +63,20 @@ def get_submissions_in_window(
         submission_ids.append(saved_submission.submission_id)
         submission_ids_for_praw = [i if i.startswith('t3_') else f't3_{i}' for i in submission_ids]
 
-        for praw_submission in reddit_instance.info(submission_ids_for_praw):
-            submission = Submission.objects.filter(submission_id=praw_submission.id).first()
+        try:
+            for praw_submission in reddit_instance.info(submission_ids_for_praw):
+                submission = Submission.objects.filter(submission_id=praw_submission.id).first()
 
-            if is_removed_or_deleted(praw_submission):
-                submission.deleted = True
-            else:
-                submission.upvotes = int(praw_submission.score)
+                if is_removed_or_deleted(praw_submission):
+                    submission.deleted = True
+                else:
+                    submission.upvotes = int(praw_submission.score)
 
-            submission.save()
+                submission.save()
+
+        except prawcore.exceptions.PrawcoreException as exception:
+            logger.error(f'PrawcoreException during fetching list of '
+                         f'subreddits (get_submissions_in_window): {exception}')
 
     logger.info(f'Done fetching subreddit info')
 
@@ -78,6 +86,7 @@ def get_submissions_in_window(
         subreddit=subreddit_object,
         deleted=False,
     ).order_by('-upvotes')
+
 
 #
 # Main process for picking the winner
