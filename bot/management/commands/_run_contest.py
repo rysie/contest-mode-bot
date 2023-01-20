@@ -97,6 +97,10 @@ def run_contest(
         wiki_config: dict
 ) -> None:
     for subreddit in subreddits_list:
+        if subreddit.display_name not in wiki_config:
+            logger.info(f'{subreddit.display_name} key not found in wiki_config, skipping this iteration')
+            continue
+
         subreddit_config = wiki_config[subreddit.display_name]
 
         if not subreddit_config['enabled']:
